@@ -2,22 +2,27 @@
 #include <conio.h>
 #include "Functions.h"
 #include "Matrix.h"
+#include <fstream>
 
 
 void AboutProgram()
 {
     using namespace std;
 
-    for (int i = 0; i < 33; i++) {
+    for (int i = 0; i < 65; i++) {
         cout << "#";
     }
-    cout << endl << "#\t\t\t\t#" << endl
-        << "#\tОбратная матрица\t#" << endl
-        << "#\tИ возможно что-то еще\t#" << endl
-        << "#\t\t\t\t#" << endl
-        << "#\t\t\t\t#" << endl
-        << "# Автор: Unknown\t#" << endl;
-    for (int i = 0; i < 33; i++) {
+    cout << endl << "#\t\t\t\t\t\t\t\t#" << endl
+        << "#\tВычисление:\t\t\t\t\t\t#" << endl
+        << "#\tОбратной матрицы\t\t\t\t\t#" << endl
+        << "#\tПеремножение двух матриц\t\t\t\t#" << endl
+        << "#\tСложение либо вычитание двух матриц\t\t\t#" << endl
+        << "#\tМатрицы можно вводить с консоли, либо читать из файла\t#" << endl
+        << "#\tРезультаты вычислений будут записаны в файлы\t\t#" << endl
+        << "#\t\t\t\t\t\t\t\t#" << endl
+        << "#\t\t\t\t\t\t\t\t#" << endl
+        << "# Автор: BigBlackPencil\t\t\t\t\t\t#" << endl;
+    for (int i = 0; i < 65; i++) {
         cout << "#";
     }
     cout << endl << "#\t\t\t\t#" << endl << "#\t\t\t\t#" << endl;
@@ -60,7 +65,6 @@ int MenuSelect(int* count)
     }
     return c;
 }
-
 
 void ClearConsole()
 {
@@ -298,6 +302,8 @@ void EnterFromKeyboard()
 {
     double value;
     int sizeSqMatrix;
+    double determinant = 0;
+
     try
     {
         std::cout << "Enter size of square matrix: ";
@@ -334,29 +340,38 @@ void EnterFromKeyboard()
         PrintSqMatrix(SqMatrix, sizeSqMatrix, sizeSqMatrix);
 
         /*
+        * Корректирование введеных пользователем данных
+        */
+        while (CorrectionInput(SqMatrix, sizeSqMatrix, sizeSqMatrix) != -1) {
+            std::cout << std::endl << "Главная матрица" << '\n';
+            PrintSqMatrix(SqMatrix, sizeSqMatrix, sizeSqMatrix);
+            std::cout << '\n';
+        };
+
+        /*
         * Транспонирование матрицы
         */
         double** TranspositionMatrix = Transposition(SqMatrix, sizeSqMatrix, sizeSqMatrix);
         std::cout << "Транспонированная введенная матрица: \n";
         PrintSqMatrix(TranspositionMatrix, sizeSqMatrix, sizeSqMatrix);
-        FreeMemmorySqMatrix(TranspositionMatrix, sizeSqMatrix);
 
         /*
         * Определитель матрицы
         */
+        determinant = Determinant(SqMatrix, sizeSqMatrix);
         std::cout << "Определитель матрицы: ";
-        std::cout << Determinant(SqMatrix, sizeSqMatrix) << "\n\n";
+        std::cout << determinant << "\n\n";
         if (Determinant(SqMatrix, sizeSqMatrix) == 0)
         {
             throw MatrixException(2);
         }
+
         /*
         *Союзная матрица
         */
         double** AlliedMart = AlliedMatrix(SqMatrix, sizeSqMatrix);
         std::cout << "Сщюзная матрица: \n\n\n";
         PrintSqMatrix(AlliedMart, sizeSqMatrix, sizeSqMatrix);
-        FreeMemmorySqMatrix(AlliedMart, sizeSqMatrix);
 
         /*
         * Обратная матрица
@@ -364,8 +379,8 @@ void EnterFromKeyboard()
         double** Inverse = InverseMatrix(SqMatrix, sizeSqMatrix);
         std::cout << "Invert матрица: \n\n\n";
         PrintSqMatrix(Inverse, sizeSqMatrix, sizeSqMatrix);
-        FreeMemmorySqMatrix(Inverse, sizeSqMatrix);
 
+        SaveToFileSqMatrix(determinant, SqMatrix, TranspositionMatrix, AlliedMart, Inverse, sizeSqMatrix);
 
         std::cout << "Enter a number by which you want to multiply the matrix: ";
         std::cin >> value;
@@ -380,6 +395,9 @@ void EnterFromKeyboard()
         std::cout << "\nYour square matrix multiplated by a number: \n";
         PrintSqMatrix(SqMatrix, sizeSqMatrix, sizeSqMatrix);
 
+        FreeMemmorySqMatrix(TranspositionMatrix, sizeSqMatrix);
+        FreeMemmorySqMatrix(AlliedMart, sizeSqMatrix);
+        FreeMemmorySqMatrix(Inverse, sizeSqMatrix);
         FreeMemmorySqMatrix(SqMatrix, sizeSqMatrix);
     }
     catch (MatrixException Exc)
@@ -409,29 +427,6 @@ void EnterFromKeyboardForMul()
             throw MatrixException(8);
         }
 
-        std::cout << "\n\nEnter size of the second matix:\n";
-        std::cout << "Enter number of rows: ";
-        std::cin >> rows2;
-        if (std::cin.fail() != 0 || rows2 <= 0)
-        {
-            std::cin.clear();
-            throw MatrixException(8);
-        }
-        else if (cols1 != rows2)
-        {
-            std::cin.clear();
-            throw MatrixException(15);
-        }
-        std::cout << "Enter number of coloumns: ";
-        std::cin >> cols2;
-        if (std::cin.fail() != 0 || cols2 <= 0)
-        {
-            std::cin.clear();
-            throw MatrixException(8);
-        }
-
-
-
         double** Matrix1 = AllocMemmoryMatrix(rows1, cols1);
 
         std::cout << "Enter elements of the second matrix: \n";
@@ -452,6 +447,36 @@ void EnterFromKeyboardForMul()
         }
         std::cout << "\nYour the first matrix: \n";
         PrintSqMatrix(Matrix1, rows1, cols1);
+
+        /*
+        * Корректирование введеных пользователем данных
+        */
+        while (CorrectionInput(Matrix1, rows1, cols1) != -1) {
+            std::cout << std::endl << "Главная матрица" << '\n';
+            PrintSqMatrix(Matrix1, rows1, cols1);
+            std::cout << '\n';
+        };
+
+        std::cout << "\n\nEnter size of the second matix:\n";
+        std::cout << "Enter number of rows: ";
+        std::cin >> rows2;
+        if (std::cin.fail() != 0 || rows2 <= 0)
+        {
+            std::cin.clear();
+            throw MatrixException(8);
+        }
+        else if (cols1 != rows2)
+        {
+            std::cin.clear();
+            throw MatrixException(15);
+        }
+        std::cout << "Enter number of coloumns: ";
+        std::cin >> cols2;
+        if (std::cin.fail() != 0 || cols2 <= 0)
+        {
+            std::cin.clear();
+            throw MatrixException(8);
+        }
 
         double** Matrix2 = AllocMemmoryMatrix(rows2, cols2);
 
@@ -474,13 +499,24 @@ void EnterFromKeyboardForMul()
         std::cout << "\nYour the second matrix: \n";
         PrintSqMatrix(Matrix2, rows2, cols2);
 
+        /*
+        * Корректирование введеных пользователем данных
+        */
+        while (CorrectionInput(Matrix2, rows2, cols2) != -1) {
+            std::cout << std::endl << "Главная матрица" << '\n';
+            PrintSqMatrix(Matrix2, rows2, cols2);
+            std::cout << '\n';
+        };
+
         double** ResultMatrix = MultipMatrrixes(Matrix1, Matrix2, rows1, cols1, cols2);
+        SaveToFileMatrixMul(Matrix1, Matrix2, ResultMatrix, rows1, cols1, rows2, cols2);
         std::cout << "Result:\n\n";
         PrintSqMatrix(ResultMatrix, rows1, cols2);
 
+
         FreeMemmorySqMatrix(Matrix1, rows1);
         FreeMemmorySqMatrix(Matrix2, rows2);
-        FreeMemmorySqMatrix(ResultMatrix, rows2);
+        FreeMemmorySqMatrix(ResultMatrix, rows1);
     }
     catch (MatrixException Exc)
     {
@@ -558,6 +594,15 @@ void EnterFromKeyboardForAddorSub(short addsub)
         std::cout << "\nYour the first matrix: \n";
         PrintSqMatrix(Matrix1, rows, cols);
 
+        /*
+        * Корректирование введеных пользователем данных
+        */
+        while (CorrectionInput(Matrix1, rows, cols) != -1) {
+            std::cout << std::endl << "Главная матрица" << '\n';
+            PrintSqMatrix(Matrix1, rows, cols);
+            std::cout << '\n';
+        };
+
         double** Matrix2 = AllocMemmoryMatrix(rows, cols);
 
         std::cout << "Enter elements of the second matrix: \n";
@@ -579,9 +624,20 @@ void EnterFromKeyboardForAddorSub(short addsub)
         std::cout << "\nYour the first matrix: \n";
         PrintSqMatrix(Matrix2, rows, cols);
 
+        /*
+        * Корректирование введеных пользователем данных
+        */
+        while (CorrectionInput(Matrix2, rows, cols) != -1) {
+            std::cout << std::endl << "Главная матрица" << '\n';
+            PrintSqMatrix(Matrix2, rows, cols);
+            std::cout << '\n';
+        };
+
         double** ResultMatrix = AddSubMatrices(Matrix1, Matrix2, rows, cols, addsub);
         std::cout << "Result:\n\n";
         PrintSqMatrix(ResultMatrix, rows, cols);
+
+        SaveToFileMatrixAddSub(Matrix1, Matrix2, ResultMatrix, rows, cols);
 
         FreeMemmorySqMatrix(Matrix1, rows);
         FreeMemmorySqMatrix(Matrix2, rows);
@@ -592,7 +648,296 @@ void EnterFromKeyboardForAddorSub(short addsub)
     }
 }
 
+/*
+no done
+*/
 void FromBinaryFile()
-{
+{/*
+    try {
+        ifstream fin("input.dat", ios::in | ios::binary);
+        if (fin == 0) {
+            fin.close();
+            throw MatrixException(11);
+        }
 
+        int i, j, sizeOfMatrix;
+        double determinant;
+        double buf[400];
+
+        wcout << L"Введите размер квадратной матрицы: ";
+        cin >> sizeOfMatrix;
+        if (cin.fail() != 0) {
+            cin.clear();
+            char errInput[50];
+            cin >> errInput;
+            throw MatrixException(5);
+        }
+        SquareMatrix MainMatrix(sizeOfMatrix);
+        SquareMatrix AlliedMatrix(sizeOfMatrix);
+        SquareMatrix InverseMatrix(sizeOfMatrix);
+        wcout << endl << L"Чтение файла input.dat..." << endl;
+        fin.read(reinterpret_cast<char*>(buf), sizeOfMatrix * sizeOfMatrix * sizeof(double));
+        if ((fin.gcount() / sizeof(double)) < sizeOfMatrix * sizeOfMatrix) {
+            throw MatrixException(12);
+        }
+        for (i = 0; i < MainMatrix.size; i++) {
+            for (j = 0; j < MainMatrix.size; j++) {
+                MainMatrix(i, j) = buf[i * sizeOfMatrix + j];
+            }
+        }
+        fin.close();
+        wcout << endl << L"Главная матрица" << endl;
+        MainMatrix.Print();
+        wcout << endl;
+        while (CorrectionInput(&MainMatrix) != -1) {
+            wcout << endl << L"Главная матрица" << endl;
+            MainMatrix.Print();
+            wcout << endl;
+        };
+        wcout << endl << L"Главная матрица" << endl;
+        MainMatrix.Print();
+        wcout << endl;
+        determinant = MainMatrix.Determinant();
+        wcout << L"Определитель = " << determinant << endl << endl;
+        if (SaveToFile(&determinant) != 0) {
+            throw MatrixException(10);
+        }
+        if (MainMatrix.Determinant() == 0) {
+            throw MatrixException(2);
+        }
+        AlliedMatrix = !(MainMatrix.Allied());
+        wcout << L"Союзная матрица" << endl;
+        AlliedMatrix.Print();
+        wcout << endl;
+        InverseMatrix = AlliedMatrix * (1 / determinant);
+        wcout << L"Обратная матрица" << endl;
+        InverseMatrix.Print();
+        wcout << endl;
+        if (SaveToFile(&determinant, &AlliedMatrix, &InverseMatrix) != 0) {
+            throw MatrixException(10);
+        }
+    }
+    catch (MatrixException Exc) {
+        wcout << Exc.Error() << endl << endl;
+    }*/
+}
+
+int SaveToFileSqMatrix(double determinant, double** SqMatr, double** TransponMatr, double** AlliedMatr, double** InverseMatr, int size)
+{
+    std::ofstream fout("results.txt", std::ios::app);
+    try
+    {
+        if (!fout.is_open())
+            throw MatrixException(10);
+
+        fout << "Результаты:\n\n"
+             << "Детерминант: " << determinant << "\n\n"
+             << "Введенная матрица:\n\n";
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                fout << SqMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "Транспонированная матрица:\n\n";
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                fout << TransponMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "Союзная матрица:\n\n";
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                fout << AlliedMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "Инверсная матрица:\n\n";
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                fout << InverseMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout.close();
+        std::cout << "Результаты вычеслений записаны в файл\n";
+    }
+    catch (MatrixException Exc)
+    {
+        std::cout << Exc.Error() << "\n\n";
+    }
+    
+    return 0;
+}
+
+int SaveToFileMatrixMul(double** Matr1, double** Matr2, double** ResultMatr, int rows1, int cols1, int rows2, int cols2)
+{
+    std::ofstream fout("resultsMul.txt", std::ios::app);
+    try
+    {
+        if (!fout.is_open())
+            throw MatrixException(10);
+
+        fout << "Результаты:\n\n"
+            << "Введенные матрицы:\n\n";
+        for (int i = 0; i < rows1; i++)
+        {
+            for (int j = 0; j < cols1; j++)
+            {
+                fout << Matr1[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "\n\n";
+
+        for (int i = 0; i < rows2; i++)
+        {
+            for (int j = 0; j < cols2; j++)
+            {
+                fout << Matr2[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "\n\n";
+
+        fout << "Результат умножения:\n\n";
+        for (int i = 0; i < rows1; i++)
+        {
+            for (int j = 0; j < cols2; j++)
+            {
+                fout << ResultMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+        
+        fout << "\n\n";
+       
+        fout.close();
+        std::cout << "Результаты вычеслений записаны в файл\n";
+    }
+    catch (MatrixException Exc)
+    {
+        std::cout << Exc.Error() << "\n\n";
+    }
+
+    return 0;
+}
+
+int SaveToFileMatrixAddSub(double** Matr1, double** Matr2, double** ResultMatr, int rows, int cols)
+{
+    std::ofstream fout("resultsAddSub.txt", std::ios::app);
+    try
+    {
+        if (!fout.is_open())
+            throw MatrixException(10);
+
+        fout << "Результаты:\n\n"
+            << "Введенные матрица:\n\n";
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                fout << Matr1[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "\n\n";
+
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                fout << Matr2[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "\n\n";
+
+        fout << "Результат математической операции:\n\n";
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < cols; j++)
+            {
+                fout << ResultMatr[i][j] << "  ";
+            }
+            fout << '\n';
+        }
+
+        fout << "\n\n";
+
+        fout.close();
+        std::cout << "Результаты вычеслений записаны в файл\n";
+    }
+    catch (MatrixException Exc)
+    {
+        std::cout << Exc.Error() << "\n\n";
+    }
+
+    return 0;
+}
+
+int CorrectionInput(double** Matrix, int rows, int cols)
+{
+    double element = 0;
+    int choice = 0;
+    int row = -1, col = -1;
+
+    std::cout << "Корректировать введенные данные?\n"
+              << "[1] - для исправления введенных данных\n"
+              << "[Любая другая цифра] - для продолжения вычислений\n"
+              << "Выбор: ";
+
+    std::cin >> choice;
+    std::cout << "\n\n";
+    if (std::cin.fail() != 0) {
+        std::cin.clear();
+    }
+    if (choice == 1) {
+        try {
+            std::cout << "Введите номер СТРОКИ исправляемого элемента: ";
+            std::cin >> row;
+            if ((std::cin.fail() != 0) || (row < 1 || row > rows)) {
+                std::cin.clear();
+                throw MatrixException(13);
+            }
+            std::cout << "Введите номер СТОЛБЦА исправляемого элемента: ";
+            std::cin >> col;
+            if ((std::cin.fail() != 0) || (col < 1 || col > cols)) {
+                std::cin.clear();
+                throw MatrixException(14);
+            }
+            std::cout << "[" << row << "," << col << "] " << Matrix[row - 1][col - 1] << " --> ";
+            std::cin >> element;
+            std::cout << std::endl;
+            if (std::cin.fail() != 0) {
+                std::cin.clear();
+                throw MatrixException(9);
+            }
+            Matrix[row - 1][col - 1] = element;
+        }
+        catch (MatrixException Exc) {
+            std::cout << Exc.Error() << "\n\n";
+        }
+    }
+    else {
+        return -1;
+    }
+    return 0;
 }
