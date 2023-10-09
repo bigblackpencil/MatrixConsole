@@ -20,7 +20,7 @@ void EnterFromKeyboard();
 void EnterFromKeyboardForMul();
 double** AddSubMatrices(double** Matrix1, double** Matrix2, int rows, int cols, int addsub);
 void EnterFromKeyboardForAddorSub(short addsub);
-void FromBinaryFile();//no done
+void SqMatrixFromBinaryFile();
 int CorrectionInput(double** Matrix, int rows, int cols);
 int SaveToFileSqMatrix(double determinant, double** SqMatr, double** TransponMatr, double** AlliedMatr, double** InverseMatr, int size);
 int SaveToFileMatrixMul(double** Matr1, double** Matr2, double** ResultMatr, int rows1, int cols1, int rows2, int cols2);

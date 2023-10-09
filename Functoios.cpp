@@ -115,7 +115,7 @@ double** AllocMemmoryMatrix(int rows, int cols)
     }
 
 }
-//
+
 void FreeMemmorySqMatrix(double** SqMatrix, int size)
 {
     for (int i = 0; i < size; i++)
@@ -123,7 +123,7 @@ void FreeMemmorySqMatrix(double** SqMatrix, int size)
 
     delete[] SqMatrix;
 }
-//
+
 void PrintSqMatrix(double** Matrix, int rows, int cols)
 {
     for (int i = 0; i < rows; i++)
@@ -139,7 +139,7 @@ void PrintSqMatrix(double** Matrix, int rows, int cols)
         std::cout << "\n";  //отступ после вывода матрицы
     }
 }
-//
+
 double** MultipByNumber(double** Matrix, int size, double value)
 {
     for (int i = 0; i < size; i++)
@@ -167,7 +167,7 @@ double** Transposition(double** Matrix, int rows, int cols)
 
     return TrMatrix;
 }
-//
+
 double Determinant(double** SqMatrix, int size)//Разложение по первой строчке   РАЗОБРАТЬ!!!
 {
     if (size == 1)
@@ -202,7 +202,7 @@ double Determinant(double** SqMatrix, int size)//Разложение по первой строчке   
 
     return det;
 }
-//
+
 double** AlliedMatrix(double** SqMatrix, int size)//РАЗОБРАТЬ!!!
 {
     if (size <= 1)
@@ -245,7 +245,7 @@ double** AlliedMatrix(double** SqMatrix, int size)//РАЗОБРАТЬ!!!
 
     return Allied;
 }
-//
+
 double** InverseMatrix(double** SqMatrix, int size)
 {
     double** Allied = Transposition(AlliedMatrix(SqMatrix, size), size, size);
@@ -648,78 +648,89 @@ void EnterFromKeyboardForAddorSub(short addsub)
     }
 }
 
-/*
-no done
-*/
-void FromBinaryFile()
-{/*
-    try {
-        ifstream fin("input.dat", ios::in | ios::binary);
-        if (fin == 0) {
-            fin.close();
+void SqMatrixFromBinaryFile()
+{
+    using namespace std;
+
+    int size;
+
+    double** Matrix{};
+    double determinant{};
+    double** TransponMatr{};
+    double** AlliedMatr{};
+    double** InverseMatr{};
+
+
+    cout << "\tВнимание!\t\n"
+        << "\tДля корректной работы этого модуля программы\t\n"
+        << "\tнеобходимо создать файл matrix.txt в следующем формате:\t\n"
+        << "\tв первой сторке указывается размер матрицы (количесво сторок или столбцов)\t\n"
+        << "\tматрица должна быть квадратная\t\n"
+        << "\tбудет подсчитаны:\t\n"
+        << "\tдетерминант:\t\n"
+        << "\tтранспонированная матрица:\t\n"
+        << "\tсоюзная матрица:\t\n"
+        << "\tобратная матрица исходной:\t\n\n\n\n";
+
+    try
+    {
+        ifstream fin("matrix.txt"); 
+
+        if (!fin.is_open())
+        {
             throw MatrixException(11);
         }
 
-        int i, j, sizeOfMatrix;
-        double determinant;
-        double buf[400];
+        fin >> size; // Первая строка файла должна содержать количество строк и столбцов матрицы
 
-        wcout << L"Введите размер квадратной матрицы: ";
-        cin >> sizeOfMatrix;
-        if (cin.fail() != 0) {
-            cin.clear();
-            char errInput[50];
-            cin >> errInput;
-            throw MatrixException(5);
+        if (1 == size)
+        {
+            throw MatrixException(3);
         }
-        SquareMatrix MainMatrix(sizeOfMatrix);
-        SquareMatrix AlliedMatrix(sizeOfMatrix);
-        SquareMatrix InverseMatrix(sizeOfMatrix);
-        wcout << endl << L"Чтение файла input.dat..." << endl;
-        fin.read(reinterpret_cast<char*>(buf), sizeOfMatrix * sizeOfMatrix * sizeof(double));
-        if ((fin.gcount() / sizeof(double)) < sizeOfMatrix * sizeOfMatrix) {
-            throw MatrixException(12);
-        }
-        for (i = 0; i < MainMatrix.size; i++) {
-            for (j = 0; j < MainMatrix.size; j++) {
-                MainMatrix(i, j) = buf[i * sizeOfMatrix + j];
+
+        Matrix = AllocMemmorySqMatrix(size);
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                fin >> Matrix[i][j];
             }
         }
+
         fin.close();
-        wcout << endl << L"Главная матрица" << endl;
-        MainMatrix.Print();
-        wcout << endl;
-        while (CorrectionInput(&MainMatrix) != -1) {
-            wcout << endl << L"Главная матрица" << endl;
-            MainMatrix.Print();
-            wcout << endl;
-        };
-        wcout << endl << L"Главная матрица" << endl;
-        MainMatrix.Print();
-        wcout << endl;
-        determinant = MainMatrix.Determinant();
-        wcout << L"Определитель = " << determinant << endl << endl;
-        if (SaveToFile(&determinant) != 0) {
-            throw MatrixException(10);
-        }
-        if (MainMatrix.Determinant() == 0) {
+
+        // Вывод матрицы для проверки
+        PrintSqMatrix(Matrix, size, size);
+
+        cout << "\n\n\n";
+
+        determinant = Determinant(Matrix, size);
+        if (0 == determinant)
+        {
             throw MatrixException(2);
         }
-        AlliedMatrix = !(MainMatrix.Allied());
-        wcout << L"Союзная матрица" << endl;
-        AlliedMatrix.Print();
-        wcout << endl;
-        InverseMatrix = AlliedMatrix * (1 / determinant);
-        wcout << L"Обратная матрица" << endl;
-        InverseMatrix.Print();
-        wcout << endl;
-        if (SaveToFile(&determinant, &AlliedMatrix, &InverseMatrix) != 0) {
-            throw MatrixException(10);
-        }
+        TransponMatr = Transposition(Matrix, size, size);
+        AlliedMatr = AlliedMatrix(Matrix, size);
+        InverseMatr = InverseMatrix(Matrix, size);
+
+        cout << "детерминант: " << determinant << "\n\n";
+        cout << "Траспонированная матрица: \n";
+        PrintSqMatrix(TransponMatr, size, size);
+        cout << "Союзная матрица: \n";
+        PrintSqMatrix(AlliedMatr, size, size);
+        cout << "Обратная матрица: \n";
+        PrintSqMatrix(InverseMatr, size, size);
+
+        FreeMemmorySqMatrix(Matrix, size);
+        FreeMemmorySqMatrix(Matrix, size);
+        FreeMemmorySqMatrix(Matrix, size);
+        FreeMemmorySqMatrix(Matrix, size);
     }
-    catch (MatrixException Exc) {
-        wcout << Exc.Error() << endl << endl;
-    }*/
+    catch (MatrixException Exc)
+    {
+        cout << Exc.Error() << "\n\n";
+    }
+
+    SaveToFileSqMatrix(determinant, Matrix, TransponMatr, AlliedMatr, InverseMatr, size);
 }
 
 int SaveToFileSqMatrix(double determinant, double** SqMatr, double** TransponMatr, double** AlliedMatr, double** InverseMatr, int size)

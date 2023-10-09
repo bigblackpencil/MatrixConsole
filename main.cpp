@@ -4,8 +4,6 @@
 #include "Functions.h"
 
 
-
-
 int main()
 {
    
@@ -17,7 +15,7 @@ int main()
     while (true)
     {
         int count = 0;
-        int* ptr = &count;//непонятно для чего
+        int* ptr = &count;
         choice = MenuSelect(ptr);
         switch (choice)
         {
@@ -26,7 +24,7 @@ int main()
             MenuTypeOutput();
             break;
         case 2:
-            FromBinaryFile();//no done
+            SqMatrixFromBinaryFile();
             MenuTypeOutput();
             break;
         case 3:
